@@ -21,7 +21,10 @@ func WithLogEntry(parent context.Context, logEntry *HTTPLoggerEntry) context.Con
 	return context.WithValue(parent, LogEntryCtxKey, logEntry)
 }
 
-func Log(ctx context.Context) *logrus.Logger {
+func Log(ctx context.Context) logrus.FieldLogger {
+	if entry, ok := ctx.Value(middleware.LogEntryCtxKey).(*HTTPLoggerEntry); ok {
+		return entry.Logger
+	}
 	lgr, ok := ctx.Value(LoggerCtxKey).(*logrus.Logger)
 	if !ok {
 		panic("lg: logger backend has not been set on the context.")
@@ -29,7 +32,7 @@ func Log(ctx context.Context) *logrus.Logger {
 	return lgr
 }
 
-func RequestLog(r *http.Request) *logrus.Logger {
+func RequestLog(r *http.Request) logrus.FieldLogger {
 	return Log(r.Context())
 }
 

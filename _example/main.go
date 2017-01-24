@@ -38,6 +38,7 @@ func main() {
 		r.Get("/search", Search)
 	})
 	r.Get("/stdlog", Stdlog)
+	r.Get("/panic", Panic)
 
 	go func() {
 		for {
@@ -97,4 +98,8 @@ func Search(w http.ResponseWriter, r *http.Request) {
 func Stdlog(w http.ResponseWriter, r *http.Request) {
 	log.Println("logging from stdlib log to logrus")
 	w.Write([]byte("piping from the stdlib log pkg"))
+}
+
+func Panic(w http.ResponseWriter, r *http.Request) {
+	panic("oh no")
 }

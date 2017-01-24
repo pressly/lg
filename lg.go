@@ -36,24 +36,24 @@ func RequestLog(r *http.Request) logrus.FieldLogger {
 	return Log(r.Context())
 }
 
-func SetLogField(ctx context.Context, key string, value interface{}) {
+func SetEntryField(ctx context.Context, key string, value interface{}) {
 	if entry, ok := ctx.Value(middleware.LogEntryCtxKey).(*HTTPLoggerEntry); ok {
 		entry.Logger = entry.Logger.WithField(key, value)
 	}
 }
 
-func SetLogFields(ctx context.Context, fields map[string]interface{}) {
+func SetEntryFields(ctx context.Context, fields map[string]interface{}) {
 	if entry, ok := ctx.Value(middleware.LogEntryCtxKey).(*HTTPLoggerEntry); ok {
 		entry.Logger = entry.Logger.WithFields(fields)
 	}
 }
 
-func SetRequestLogField(r *http.Request, key string, value interface{}) {
-	SetLogField(r.Context(), key, value)
+func SetRequestEntryField(r *http.Request, key string, value interface{}) {
+	SetEntryField(r.Context(), key, value)
 }
 
-func SetRequestLogFields(r *http.Request, fields map[string]interface{}) {
-	SetLogFields(r.Context(), fields)
+func SetRequestEntryFields(r *http.Request, fields map[string]interface{}) {
+	SetEntryFields(r.Context(), fields)
 }
 
 // contextKey is a value for use with context.WithValue. It's used as

@@ -56,7 +56,7 @@ var counter = uint64(0)
 func Counter(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		atomic.AddUint64(&counter, 1)
-		lg.SetLogField(r.Context(), "count", counter)
+		lg.SetEntryField(r.Context(), "count", counter)
 		next.ServeHTTP(w, r)
 	})
 }
@@ -64,7 +64,7 @@ func Counter(next http.Handler) http.Handler {
 func ArticleCtx(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		lg.RequestLog(r).Warnf("inside ArticleCtx middleware")
-		lg.SetRequestLogField(r, "article", 123)
+		lg.SetRequestEntryField(r, "article", 123)
 		next.ServeHTTP(w, r)
 	})
 }
@@ -72,7 +72,7 @@ func ArticleCtx(next http.Handler) http.Handler {
 func PaginateCtx(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		lg.RequestLog(r).Warnf("inside PaginateCtx middleware")
-		lg.SetLogField(r.Context(), "paginate", true)
+		lg.SetEntryField(r.Context(), "paginate", true)
 		next.ServeHTTP(w, r)
 	})
 }

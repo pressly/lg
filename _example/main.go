@@ -41,6 +41,7 @@ func main() {
 		r.Get("/search", Search)
 	})
 	r.Get("/stdlog", Stdlog)
+	r.Get("/fatal", Fatal)
 	r.Get("/panic", Panic)
 
 	go func() {
@@ -101,6 +102,10 @@ func Search(w http.ResponseWriter, r *http.Request) {
 func Stdlog(w http.ResponseWriter, r *http.Request) {
 	log.Println("logging from stdlib log to logrus")
 	w.Write([]byte("piping from the stdlib log pkg"))
+}
+
+func Fatal(w http.ResponseWriter, r *http.Request) {
+	lg.RequestLog(r).Fatal("boom")
 }
 
 func Panic(w http.ResponseWriter, r *http.Request) {

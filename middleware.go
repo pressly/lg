@@ -100,13 +100,7 @@ func (l *HTTPLoggerEntry) Write(status, bytes int, elapsed time.Duration) {
 		case logrus.FatalLevel:
 			l.Logger.Fatalln("request complete")
 		case logrus.PanicLevel:
-			// Prepare to catch the error as logrus will panic again with the message.
-			// It would be nice if logrus smoothed out this case, but we get around it
-			// by recovering again here.
-			defer func() {
-				recover()
-			}()
-			l.Logger.Panicln("request complete")
+			l.Logger.Errorln("request complete")
 		}
 	}
 }

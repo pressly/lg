@@ -20,6 +20,9 @@ func main() {
 	logger.Formatter = &logrus.JSONFormatter{}
 
 	lg.RedirectStdlogOutput(logger)
+	lg.DefaultLogger = logger
+
+	lg.Infoln("Welcome")
 
 	serverCtx := context.Background()
 	serverCtx = lg.WithLoggerContext(serverCtx, logger)

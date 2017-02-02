@@ -26,8 +26,8 @@ func RequestLogger(logger *logrus.Logger) func(next http.Handler) http.Handler {
 				t2 := time.Now()
 
 				// Recover and record stack traces in case of a panic
-				if rvr := recover(); rvr != nil {
-					entry.Panic(rvr, debug.Stack())
+				if rec := recover(); rec != nil {
+					entry.Panic(rec, debug.Stack())
 					http.Error(ww, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 				}
 
@@ -105,11 +105,25 @@ func (l *HTTPLoggerEntry) Write(status, bytes int, elapsed time.Duration) {
 	}
 }
 
-func (l *HTTPLoggerEntry) Panic(v interface{}, stack []byte) {
+func (l *HTTPLoggerEntry) Panic(rec interface{}, stack []byte) {
 	l.Logger = l.Logger.WithFields(logrus.Fields{
 		"stack": string(stack),
-		"panic": fmt.Sprintf("%+v", v),
+		"panic": fmt.Sprintf("%+v", rec),
 	})
 	panicLevel := logrus.PanicLevel
 	l.Level = &panicLevel
+}
+
+// PrintPanics is a development middleware that preempts the request logger
+// and prints a panic message and stack trace to stdout.
+func PrintPanics(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		defer func() {
+			if rec := recover(); rec != nil {
+				fmt.Printf("\nPANIC: %+v\n", rec)
+				fmt.Printf("%s\n", debug.Stack())
+			}
+		}()
+		next.ServeHTTP(w, r)
+	})
 }

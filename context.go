@@ -5,7 +5,6 @@ import (
 	"net/http"
 
 	"github.com/Sirupsen/logrus"
-	"github.com/pressly/chi/middleware"
 )
 
 var (
@@ -22,7 +21,7 @@ func WithLogEntry(parent context.Context, logEntry *HTTPLoggerEntry) context.Con
 }
 
 func Log(ctx context.Context) logrus.FieldLogger {
-	if entry, ok := ctx.Value(middleware.LogEntryCtxKey).(*HTTPLoggerEntry); ok {
+	if entry, ok := ctx.Value(LogEntryCtxKey).(*HTTPLoggerEntry); ok {
 		return entry.Logger
 	}
 	lgr, ok := ctx.Value(LoggerCtxKey).(*logrus.Logger)
@@ -37,13 +36,13 @@ func RequestLog(r *http.Request) logrus.FieldLogger {
 }
 
 func SetEntryField(ctx context.Context, key string, value interface{}) {
-	if entry, ok := ctx.Value(middleware.LogEntryCtxKey).(*HTTPLoggerEntry); ok {
+	if entry, ok := ctx.Value(LogEntryCtxKey).(*HTTPLoggerEntry); ok {
 		entry.Logger = entry.Logger.WithField(key, value)
 	}
 }
 
 func SetEntryFields(ctx context.Context, fields map[string]interface{}) {
-	if entry, ok := ctx.Value(middleware.LogEntryCtxKey).(*HTTPLoggerEntry); ok {
+	if entry, ok := ctx.Value(LogEntryCtxKey).(*HTTPLoggerEntry); ok {
 		entry.Logger = entry.Logger.WithFields(fields)
 	}
 }

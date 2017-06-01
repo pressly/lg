@@ -10,11 +10,24 @@ import (
 	"github.com/pressly/chi/middleware"
 )
 
-// RequestLogger is a middleware for the github.com/Sirupsen/logrus to log requests.
-// It is equipt to handle recovery in case of panics and record the stack trace
-// with a panic log-level.
+type RequestLoggerConfig struct {
+	// Logger is the backing logger to log to.
+	Logger *logrus.Logger
+	// WriteRequestStartedLine indicates if a request started line should be written or not.
+	// If false, only a request completed line will be written.
+	WriteRequestStartedLine bool
+}
+
+// RequestLogger configures a request logger with the given logger and default config.
 func RequestLogger(logger *logrus.Logger) func(next http.Handler) http.Handler {
-	httpLogger := &HTTPLogger{logger}
+	return RequestLoggerWithConfig(RequestLoggerConfig{Logger: logger, WriteRequestStartedLine: true})
+}
+
+// RequestLoggerWithConfig is a middleware for the github.com/Sirupsen/logrus to log requests.
+// It is equipped to handle recovery in case of panics and record the stack trace
+// with a panic log-level.
+func RequestLoggerWithConfig(config RequestLoggerConfig) func(next http.Handler) http.Handler {
+	httpLogger := &HTTPLogger{Logger: config.Logger, WriteRequestStartedLine: config.WriteRequestStartedLine}
 
 	return func(next http.Handler) http.Handler {
 		fn := func(w http.ResponseWriter, r *http.Request) {
@@ -43,7 +56,8 @@ func RequestLogger(logger *logrus.Logger) func(next http.Handler) http.Handler {
 }
 
 type HTTPLogger struct {
-	Logger *logrus.Logger
+	Logger                  *logrus.Logger
+	WriteRequestStartedLine bool
 }
 
 func (l *HTTPLogger) NewLogEntry(r *http.Request) *HTTPLoggerEntry {
@@ -69,7 +83,9 @@ func (l *HTTPLogger) NewLogEntry(r *http.Request) *HTTPLoggerEntry {
 
 	entry.Logger = entry.Logger.WithFields(logFields)
 
-	entry.Logger.Infoln("request started")
+	if l.WriteRequestStartedLine {
+		entry.Logger.Infoln("request started")
+	}
 
 	return entry
 }
@@ -82,25 +98,25 @@ type HTTPLoggerEntry struct {
 func (l *HTTPLoggerEntry) Write(status, bytes int, elapsed time.Duration) {
 	l.Logger = l.Logger.WithFields(logrus.Fields{
 		"resp_status": status, "resp_bytes_length": bytes,
-		"resp_elasped_ms": float64(elapsed.Nanoseconds()) / 1000000.0,
+		"resp_elapsed_ms": float64(elapsed.Nanoseconds()) / 1000000.0,
 	})
 
 	if l.Level == nil {
-		l.Logger.Infoln("request complete")
+		l.Logger.Infoln("request completed")
 	} else {
 		switch *l.Level {
 		case logrus.DebugLevel:
-			l.Logger.Debugln("request complete")
+			l.Logger.Debugln("request completed")
 		case logrus.InfoLevel:
-			l.Logger.Infoln("request complete")
+			l.Logger.Infoln("request completed")
 		case logrus.WarnLevel:
-			l.Logger.Warnln("request complete")
+			l.Logger.Warnln("request completed")
 		case logrus.ErrorLevel:
-			l.Logger.Errorln("request complete")
+			l.Logger.Errorln("request completed")
 		case logrus.FatalLevel:
-			l.Logger.Fatalln("request complete")
+			l.Logger.Fatalln("request completed")
 		case logrus.PanicLevel:
-			l.Logger.Errorln("request complete")
+			l.Logger.Errorln("request completed")
 		}
 	}
 }

@@ -14,7 +14,7 @@ type RequestLoggerConfig struct {
 	// Logger is the backing logger to log to.
 	Logger *logrus.Logger
 	// WriteRequestStartedLine indicates if a request started line should be written or not.
-	// If false, only a request completed line will be written.
+	// If false, only a completed line will be written.
 	WriteRequestStartedLine bool
 }
 
@@ -68,18 +68,19 @@ func (l *HTTPLogger) NewLogEntry(r *http.Request) *HTTPLoggerEntry {
 		logFields["req_id"] = reqID
 	}
 
-	scheme := "http"
-	if r.TLS != nil {
-		scheme = "https"
-	}
-	logFields["http_scheme"] = scheme
-	logFields["http_proto"] = r.Proto
-	logFields["http_method"] = r.Method
+	// scheme := "http"
+	// if r.TLS != nil {
+	// 	scheme = "https"
+	// }
+	// logFields["http_scheme"] = scheme
+	// logFields["http_proto"] = r.Proto
+	logFields["method"] = r.Method
 
-	logFields["remote_addr"] = r.RemoteAddr
-	logFields["user_agent"] = r.UserAgent()
+	logFields["ip"] = r.RemoteAddr
+	logFields["ua"] = r.UserAgent()
 
-	logFields["uri"] = fmt.Sprintf("%s://%s%s", scheme, r.Host, r.RequestURI)
+	//logFields["uri"] = fmt.Sprintf("%s://%s%s", scheme, r.Host, r.RequestURI)
+	logFields["uri"] = r.URL.Path
 
 	entry.Logger = entry.Logger.WithFields(logFields)
 
@@ -97,26 +98,26 @@ type HTTPLoggerEntry struct {
 
 func (l *HTTPLoggerEntry) Write(status, bytes int, elapsed time.Duration) {
 	l.Logger = l.Logger.WithFields(logrus.Fields{
-		"resp_status": status, "resp_bytes_length": bytes,
-		"resp_elapsed_ms": float64(elapsed.Nanoseconds()) / 1000000.0,
+		"res_code": status, "res_bytes": bytes,
+		"res_ms": float64(elapsed.Nanoseconds()) / 1000000.0,
 	})
 
 	if l.Level == nil {
-		l.Logger.Infoln("request completed")
+		l.Logger.Infoln("completed")
 	} else {
 		switch *l.Level {
 		case logrus.DebugLevel:
-			l.Logger.Debugln("request completed")
+			l.Logger.Debugln("completed")
 		case logrus.InfoLevel:
-			l.Logger.Infoln("request completed")
+			l.Logger.Infoln("completed")
 		case logrus.WarnLevel:
-			l.Logger.Warnln("request completed")
+			l.Logger.Warnln("completed")
 		case logrus.ErrorLevel:
-			l.Logger.Errorln("request completed")
+			l.Logger.Errorln("completed")
 		case logrus.FatalLevel:
-			l.Logger.Fatalln("request completed")
+			l.Logger.Fatalln("completed")
 		case logrus.PanicLevel:
-			l.Logger.Errorln("request completed")
+			l.Logger.Errorln("completed")
 		}
 	}
 }

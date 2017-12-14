@@ -58,6 +58,8 @@ func (l *HTTPLogger) NewLogEntry(r *http.Request) *HTTPLoggerEntry {
 	if r.TLS != nil {
 		scheme = "https"
 	}
+	host := r.Host
+
 	logFields["http_scheme"] = scheme
 	logFields["http_proto"] = r.Proto
 	logFields["http_method"] = r.Method
@@ -65,7 +67,19 @@ func (l *HTTPLogger) NewLogEntry(r *http.Request) *HTTPLoggerEntry {
 	logFields["remote_addr"] = r.RemoteAddr
 	logFields["user_agent"] = r.UserAgent()
 
-	logFields["uri"] = fmt.Sprintf("%s://%s%s", scheme, r.Host, r.RequestURI)
+	if val := r.Header.Get("X-Forwarded-For"); val != "" {
+		logFields["X-Forwarded-For"] = val
+	}
+	if val := r.Header.Get("X-Forwarded-Host"); val != "" {
+		logFields["X-Forwarded-Host"] = val
+		host = val
+	}
+	if val := r.Header.Get("X-Forwarded-Scheme"); val != "" {
+		logFields["X-Forwarded-Scheme"] = val
+		scheme = val
+	}
+
+	logFields["uri"] = fmt.Sprintf("%s://%s%s", scheme, host, r.RequestURI)
 
 	entry.Logger = entry.Logger.WithFields(logFields)
 

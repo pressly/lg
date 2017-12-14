@@ -16,6 +16,11 @@ import (
 // with a panic log-level.
 // It's second parameter is a map[string]string of replacements for parameters to be sanitized
 // before logging
+// Example:
+//	map[string]string{
+//		"token": "[redacted]",
+//		"session": "removed-sesion-id",
+//	}
 func SanitizingRequestLogger(logger *logrus.Logger, rules map[string]string) func(next http.Handler) http.Handler {
 	httpLogger := &SanitizingHTTPLogger{logger, rules}
 
@@ -83,21 +88,22 @@ func (l *SanitizingHTTPLogger) NewLogEntry(r *http.Request) *HTTPLoggerEntry {
 		scheme = val
 	}
 
-	u, _ := url.ParseRequestURI(r.RequestURI)
-	q := u.Query()
+	if u, err := url.ParseRequestURI(r.RequestURI); err != nil {
+		q := u.Query()
 
-	// sanitize
-	for key, val := range q {
-		if rep, ok := l.Rules[key]; ok {
-			for i := 0; i < len(val); i++ {
-				val[i] = rep
+		// sanitize
+		for key, val := range q {
+			if rep, ok := l.Rules[key]; ok {
+				for i := 0; i < len(val); i++ {
+					val[i] = rep
+				}
+				q[key] = val
 			}
-			q[key] = val
 		}
-	}
-	u.RawQuery = q.Encode()
+		u.RawQuery = q.Encode()
 
-	logFields["uri"] = fmt.Sprintf("%s://%s%s", scheme, host, u.RequestURI())
+		logFields["uri"] = fmt.Sprintf("%s://%s%s", scheme, host, u.RequestURI())
+	}
 
 	entry.Logger = entry.Logger.WithFields(logFields)
 

@@ -135,7 +135,8 @@ func PrintPanics(next http.Handler) http.Handler {
 		defer func() {
 			if rec := recover(); rec != nil {
 				fmt.Printf("\nPANIC: %+v\n", rec)
-				fmt.Printf("%s\n", debug.Stack())
+				fmt.Printf("%s", debug.Stack())
+				fmt.Printf("\nPANIC: %+v\n", rec)
 			}
 		}()
 		next.ServeHTTP(w, r)

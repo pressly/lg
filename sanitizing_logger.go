@@ -88,7 +88,7 @@ func (l *SanitizingHTTPLogger) NewLogEntry(r *http.Request) *HTTPLoggerEntry {
 		scheme = val
 	}
 
-	if u, err := url.ParseRequestURI(r.RequestURI); err != nil {
+	if u, err := url.ParseRequestURI(r.RequestURI); err == nil {
 		q := u.Query()
 
 		// sanitize

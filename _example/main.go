@@ -52,7 +52,7 @@ func main() {
 		}
 	}()
 
-	service := chi.ServerBaseContext(r, serverCtx)
+	service := chi.ServerBaseContext(serverCtx, r)
 	http.ListenAndServe(":3333", service)
 }
 

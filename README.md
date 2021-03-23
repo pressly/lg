@@ -1,6 +1,6 @@
 # [DEPRECATED]
 
-We recommend to switch to https://github.com/rs/zerolog.
+We recommend to switch to https://github.com/go-chi/httplog.
 
 # Lg - Context logger backed by Logrus, including a structured HTTP RequestLogger
 
